@@ -4,7 +4,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Scanner;
 
-public class PokeAVG {
+public class Pokeavg {
     public static void main (String[] args) throws InterruptedException {
         //specify a database to retrieve information from
         if( args.length >= 2 ) {
