@@ -12,3 +12,9 @@ A CLI Application to retrieve and analyze data from Pokemon. This grants insight
 - The application...
 ## Quality Requirements
 ...
+
+## Building
+>javac Pokeavg
+
+## Usage
+>java Pokeavg (datafile) (Id to view)
