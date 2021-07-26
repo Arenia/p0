@@ -1,22 +1,26 @@
+/*
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.HashMap;
 import java.util.Map;
+*/
 import java.util.Scanner;
 
+
 public class Pokeavg {
-    public static void main (String[] args) throws InterruptedException {
+    public static void main (String[] args) {
         //specify a database to retrieve information from
+        /*
         if( args.length >= 2 ) {
             File data = new File(args[0]);
 
             //retrieve data from specified DB
             Map<Integer, String> mons = new HashMap<>();
-            Integer count_id = 1;
+            int count_id = 1;
             try(Scanner s = new Scanner(data)){
                 while(s.hasNext()){
                     String name = s.next();
-                    System.out.println("Checking line " + count_id.toString());
+                    System.out.println("Checking line " + count_id);
                     mons.put(count_id, name);
                     count_id+=1;
                 }
@@ -30,6 +34,15 @@ public class Pokeavg {
         }
         else {
             System.out.println("Usage: specify the path of the data file then the ID you wish to give, for example:\n java PokeAVG og151.txt 1");
+        }
+         */
+        if(args.length > 1){
+            DBCrafter.readCSV(args[0]);
+        }
+        else{
+            Scanner sysin = new Scanner(System.in);
+            System.out.print("Specify the filename to use: ");
+            DBCrafter.readCSV(sysin.nextLine());
         }
     }
 
