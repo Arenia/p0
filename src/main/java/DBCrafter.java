@@ -13,14 +13,17 @@ public class DBCrafter {
     public static List<String[]> readCSV(String filename){
         try (CSVReader reader = new CSVReader(new FileReader(filename))) {
             List<String[]> data = reader.readAll();
+            //Throw out top row of CSV
             data.remove(0);
             return data;
         }
         catch(FileNotFoundException ex){
-            System.out.println("File does not exist, check your call and try again.");
+            System.err.println("File does not exist, check your file path and try again.");
+            System.exit(1);
         }
         catch(Exception ex){
             System.err.println("Error: " + ex.getMessage());
+            System.exit(1);
         }
         return null;
     }
@@ -41,7 +44,6 @@ public class DBCrafter {
             StringBuilder sb = new StringBuilder();
             sb.append("values(");
             data.forEach( x-> {
-                System.out.println(Arrays.toString(x));
                 //flush sb each pass
                 sb.delete(0, sb.length());
                 sb.append("values(");
@@ -50,12 +52,15 @@ public class DBCrafter {
                         sb.append(s).append(", ");
                     }
                     else{
+                        //Capitalization check
+                        if(s.length() > 0){
+                            s = s.substring(0,1).toUpperCase() + s.substring(1);
+                        }
                         sb.append("'").append(s).append("'").append(", ");
                     }
                 }
                 sb.replace((sb.length()-2), sb.length(), ")");
                 try {
-                    System.out.println("insert into pokemon "+ sb);
                     statement.executeUpdate("insert into pokemon "+ sb);
                 } catch (SQLException ex) {
                     //System.err.println(ex.getMessage());
@@ -102,6 +107,7 @@ public class DBCrafter {
                 line.add(rs.getString("type1"));
                 line.add(rs.getString("type2"));
                 line.add(String.valueOf(rs.getInt("hp")));
+                line.add(String.valueOf(rs.getInt("attack")));
                 line.add(String.valueOf(rs.getInt("defense")));
                 line.add(String.valueOf(rs.getInt("sp_attack")));
                 line.add(String.valueOf(rs.getInt("sp_defense")));
