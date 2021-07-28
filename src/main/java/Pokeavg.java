@@ -10,30 +10,45 @@ public class Pokeavg {
         //Check if db exists, if not populate
         DBCheck(args);
         if (args.length > 1) {
-            getData(args[1]);
+            getSingleData(args[1]);
         } else {
-            Scanner sysin = new Scanner(System.in);
+            Scanner read_in = new Scanner(System.in);
             System.out.print("Specify a pokemon id to look up: ");
-            getData(sysin.nextLine());
+            getSingleData(read_in.nextLine());
         }
     }
 
     private static void DBCheck(String[] args){
-
         List<String[]> data;
-        if (! new File("pokemon.db").isFile()) {
+        if (new File("pokemon.db").isFile()) {
+            Scanner read_in = new Scanner(System.in);
+            System.out.print("Repopulate DB? (Y/N)");
+            String result = read_in.nextLine().toUpperCase();
+            if(result.equals("Y")){
+                if (args.length > 0) {
+                    data = DBCrafter.readCSV(args[0]);
+                } else {
+                    read_in = new Scanner(System.in);
+                    System.out.print("Specify a csv to populate the db with: ");
+                    data = DBCrafter.readCSV(read_in.nextLine());
+                }
+                DBCrafter.saveDB(data);
+            }
+        }
+        else {
+
             if (args.length > 0) {
                 data = DBCrafter.readCSV(args[0]);
             } else {
-                Scanner sysin = new Scanner(System.in);
+                Scanner read_in = new Scanner(System.in);
                 System.out.print("Specify a csv to populate the db with: ");
-                data = DBCrafter.readCSV(sysin.nextLine());
+                data = DBCrafter.readCSV(read_in.nextLine());
             }
             DBCrafter.saveDB(data);
         }
     }
 
-    private static void getData(String name) {
+    private static void getSingleData(String name) {
         //Confirm name is capitalized
         name = name.substring(0,1).toUpperCase() + name.substring(1);
         Connection connection;

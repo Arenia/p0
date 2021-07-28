@@ -32,6 +32,8 @@ public class DBCrafter {
         Connection connection = null;
         try{
 
+            System.out.println("Starting DB save, this may take a minute!");
+
             //create connection
             connection = DriverManager.getConnection("jdbc:sqlite:pokemon.db");
             Statement statement = connection.createStatement();
@@ -43,31 +45,30 @@ public class DBCrafter {
             //Use StringBuilder to conform data to table insertion
             StringBuilder sb = new StringBuilder();
             sb.append("values(");
-            data.forEach( x-> {
+            for (String[] x : data) {
                 //flush sb each pass
                 sb.delete(0, sb.length());
                 sb.append("values(");
-                for( String s : x ){
-                    if(StringUtils.isNumeric(s)){
+                for (String s : x) {
+                    if (StringUtils.isNumeric(s)) {
                         sb.append(s).append(", ");
-                    }
-                    else{
+                    } else {
                         //Capitalization check
-                        if(s.length() > 0){
-                            s = s.substring(0,1).toUpperCase() + s.substring(1);
+                        if (s.length() > 0) {
+                            s = s.substring(0, 1).toUpperCase() + s.substring(1);
                         }
                         sb.append("'").append(s).append("'").append(", ");
                     }
                 }
-                sb.replace((sb.length()-2), sb.length(), ")");
+                sb.replace((sb.length() - 2), sb.length(), ")");
                 try {
-                    statement.executeUpdate("insert into pokemon "+ sb);
+                    statement.executeUpdate("insert into pokemon " + sb);
                 } catch (SQLException ex) {
                     //System.err.println(ex.getMessage());
                     System.err.println("Bad syntax");
                 }
 
-            });
+            }
         }
         catch(SQLException ex){
             System.err.println(ex.getMessage());
@@ -86,6 +87,7 @@ public class DBCrafter {
                 System.err.println(ex.getMessage());
             }
         }
+        System.out.println("Database save complete");
     }
 
     public static List<String[]> readDB(){
