@@ -1,26 +1,22 @@
-import com.opencsv.CSVReader;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
 import java.util.List;
 
+// Fill this class with methods to work off the db
 
 public class Pokeavg {
     public static void main (String[] args) {
-        //specify a database to retrieve information from
-        try (CSVReader reader = new CSVReader(new FileReader(args[0]))) {
-            List<String[]> r = reader.readAll();
-            r.forEach(x -> {
+        List<String[]> data = DBCrafter.readCSV(args[0]);
+        if (data != null) {
+            data.forEach(x -> {
                 for (String s : x) {
-                    System.out.println(s);
+                    System.out.print(s + ", ");
                 }
+                System.out.println();
             });
         }
-        catch(FileNotFoundException ex){
-            System.out.println("File does not exist, check your call and try again.");
+        else{
+            System.out.println("Read error?");
+            System.exit(1);
         }
-        catch(Exception ex){
-            System.err.println("Error: " + ex.getMessage());
-        }
+        //DBCrafter.saveDB(data);
     }
-
 }
