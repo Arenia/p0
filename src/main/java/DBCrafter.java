@@ -77,13 +77,13 @@ public class DBCrafter {
             }
             sb.replace((sb.length() - 2), sb.length(), ")");
             try {
-                updater.addBatch("insert into pokemon " + sb);
+                batch.addBatch("insert into pokemon " + sb);
             } catch (SQLException ex) {
                 //System.err.println(ex.getMessage());
                 System.err.println("Bad syntax");
             }
         }
-        return updater;
+        return batch;
     }
 
     private void makeFile(){
@@ -91,7 +91,7 @@ public class DBCrafter {
         updater = getConnection();
         try{
             updater.addBatch("drop table if exists pokemon");
-            updater.addBatch("create table pokemon (id int, name string, type1 string, type2 string, hp int, attack int, defense int, sp_attack int, sp_defense int, speed int)");
+            updater.addBatch("create table pokemon (id int, name string, type1 string, type2 string, hp int, attack int, defense int, sp_attack int, sp_defense int, speed int, evolved int)");
             //Execute batch, empty after for safety
             updater.executeBatch();
             updater.clearBatch();
