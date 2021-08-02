@@ -75,6 +75,42 @@ public class DBCrafter {
 //            System.exit(1);
 //        }
     }
+    private PreparedStatement batchHundred(List<String[]> data, int batch_num){
+        PreparedStatement batch = getBatchInsert();
+        int limiter;
+        if((batch_num*100)+100 > data.size()){
+            limiter=data.size();
+        }
+        else{
+            limiter=(batch_num*100)+100;
+        }
+        //Iterate for each item in data, add to batch update
+        try {
+            for (int j = (batch_num*100); j < limiter; j++) {
+                String[] x = data.get(j);
+                for (int i = 0, xLength = (x.length); i < xLength; i++) {
+                    String s = x[i];
+                    if (StringUtils.isNumeric(s)) {
+                        batch.setInt(i + 1, Integer.parseInt(s));
+                    } else {
+                        //Capitalization check
+                        if (s.length() > 0) {
+                            s = s.substring(0, 1).toUpperCase() + s.substring(1);
+                        }
+                        batch.setString(i + 1, s);
+                    }
+                }
+                batch.addBatch();
+                batch.clearParameters();
+            }
+        }
+        catch(SQLException ex){
+            System.out.println("Catch in batching data.");
+            System.err.println(ex.getMessage());
+            System.exit(1);
+        }
+        return batch;
+    }
 
     private PreparedStatement batchData(List<String[]> data){
         PreparedStatement batch = getBatchInsert();
@@ -131,12 +167,25 @@ public class DBCrafter {
             makeFile();
 
             System.out.println("Preparing table data...");
-            insert_batch = batchData(data);
+            long start = System.currentTimeMillis();
+            int batch_count = (data.size()/100)+1;
+            for(int i=0; i<batch_count;i++){
+                insert_batch = batchHundred(data, i);
+                System.out.println("Sending batch "+i+"...");
+                long startInternal = System.currentTimeMillis();
+                insert_batch.executeBatch();
+                insert_batch.clearBatch();
+                System.out.println("batch time taken = " + (System.currentTimeMillis() - startInternal) + " ms");
+            }
+            long end = System.currentTimeMillis();
+            System.out.println("total time taken = " + (end - start) + " ms");
+            System.out.println("avg total time taken = " + (end - start)/ data.size() + " ms");
+            //insert_batch = batchData(data);
 
             System.out.println("Inserting data, please wait...");
             //Execute batch, empty after for safety
-            insert_batch.executeBatch();
-            insert_batch.clearBatch();
+            //insert_batch.executeBatch();
+            //insert_batch.clearBatch();
         }
         catch(SQLException ex){
             System.out.println("Catch in saving, bad statement?");

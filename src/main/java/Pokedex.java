@@ -42,23 +42,40 @@ public class Pokedex {
         }
     }
 
-    public void searchPokemon(int search_term) {
+    public void searchPokemonID(int search_term) {
         retriever = getConnection();
         ResultSet mon;
         try {
             mon = retriever.executeQuery("select * from pokemon where id=" + search_term);
-            System.out.println("Name: "+mon.getString(1));
-            System.out.println("Pokedex number: "+mon.getInt(0));
-            System.out.println("Type 1: "+mon.getString(2));
-            System.out.println("Type 2: "+mon.getString(3));
-            System.out.println("Base HP: "+mon.getInt(4));
-            System.out.println("Base Attack: "+mon.getInt(5));
-            System.out.println("Base Defense: "+mon.getInt(6));
-            System.out.println("Base Special Attack: "+mon.getInt(7));
-            System.out.println("Base Special Defense: "+mon.getInt(8));
-            System.out.println("Base Speed: "+mon.getInt(9));
-            int sum = mon.getInt(9) + mon.getInt(8) + mon.getInt(7) + mon.getInt(6) + mon.getInt(5) + mon.getInt(4);
+            System.out.println("Name: "+mon.getString(2));
+            System.out.println("Pokedex number: "+mon.getInt(1));
+            System.out.println("Type 1: "+mon.getString(3));
+            System.out.println("Type 2: "+mon.getString(4));
+            System.out.println("Base HP: "+mon.getInt(5));
+            System.out.println("Base Attack: "+mon.getInt(6));
+            System.out.println("Base Defense: "+mon.getInt(7));
+            System.out.println("Base Special Attack: "+mon.getInt(8));
+            System.out.println("Base Special Defense: "+mon.getInt(9));
+            System.out.println("Base Speed: "+mon.getInt(10));
+            int sum = mon.getInt(10) + mon.getInt(9) + mon.getInt(8) + mon.getInt(7) + mon.getInt(6) + mon.getInt(5);
             System.out.println("Base Total: "+sum);
+            int evolved = mon.getInt(11);
+            switch (evolved){
+                case 0:
+                    System.out.println("Evolution: Not yet evolved");
+                    break;
+                case 1:
+                    System.out.println("Evolution: Partially evolved, not final");
+                    break;
+                case 2:
+                    System.out.println("Evolution: Fully evolved");
+                    break;
+                case 3:
+                    System.out.println("Evolution: Doesn't evolve");
+                    break;
+                default:
+                    break;
+            }
         }
         catch(SQLException ex){
             System.err.println(ex.getMessage());
@@ -66,23 +83,40 @@ public class Pokedex {
         closeConnection();
     }
 
-    public void searchPokemon(String search_term) {
+    public void searchPokemonName(String search_term) {
         retriever = getConnection();
         ResultSet mon;
         try {
             mon = retriever.executeQuery("select * from pokemon where name='" + search_term+"'");
-            System.out.println("Name: "+mon.getString(1));
-            System.out.println("Pokedex number: "+mon.getInt(0));
-            System.out.println("Type 1: "+mon.getString(2));
-            System.out.println("Type 2: "+mon.getString(3));
-            System.out.println("Base HP: "+mon.getInt(4));
-            System.out.println("Base Attack: "+mon.getInt(5));
-            System.out.println("Base Defense: "+mon.getInt(6));
-            System.out.println("Base Special Attack: "+mon.getInt(7));
-            System.out.println("Base Special Defense: "+mon.getInt(8));
-            System.out.println("Base Speed: "+mon.getInt(9));
-            int sum = mon.getInt(9) + mon.getInt(8) + mon.getInt(7) + mon.getInt(6) + mon.getInt(5) + mon.getInt(4);
+            System.out.println("Name: "+mon.getString(2));
+            System.out.println("Pokedex number: "+mon.getInt(1));
+            System.out.println("Type 1: "+mon.getString(3));
+            System.out.println("Type 2: "+mon.getString(4));
+            System.out.println("Base HP: "+mon.getInt(5));
+            System.out.println("Base Attack: "+mon.getInt(6));
+            System.out.println("Base Defense: "+mon.getInt(7));
+            System.out.println("Base Special Attack: "+mon.getInt(8));
+            System.out.println("Base Special Defense: "+mon.getInt(9));
+            System.out.println("Base Speed: "+mon.getInt(10));
+            int sum = mon.getInt(10) + mon.getInt(9) + mon.getInt(8) + mon.getInt(7) + mon.getInt(6) + mon.getInt(5);
             System.out.println("Base Total: "+sum);
+            int evolved = mon.getInt(11);
+            switch (evolved){
+                case 0:
+                    System.out.println("Evolution: Not yet evolved");
+                    break;
+                case 1:
+                    System.out.println("Evolution: Partially evolved, not final");
+                    break;
+                case 2:
+                    System.out.println("Evolution: Fully evolved");
+                    break;
+                case 3:
+                    System.out.println("Evolution: Doesn't evolve");
+                    break;
+                default:
+                    break;
+            }
         }
         catch(SQLException ex){
             System.err.println(ex.getMessage());

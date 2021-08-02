@@ -37,7 +37,11 @@ public class Pokeavg {
                 case "P":
                     getSingleData();
                     break;
+                case "Q":
+                    loop = false;
+                    break;
                 default:
+                    System.out.println("Unrecognized command. Exiting.");
                     loop = false;
                     break;
             }
@@ -79,13 +83,10 @@ public class Pokeavg {
         if(!StringUtils.isNumeric(search_term)) {
             //Confirm name is capitalized
             search_term = search_term.substring(0, 1).toUpperCase() + search_term.substring(1);
-        }
-        if(StringUtils.isNumeric(search_term)) {
-            pokedex.searchPokemon(Integer.parseInt(search_term));
+            pokedex.searchPokemonName(search_term);
         }
         else{
-            pokedex.searchPokemon(search_term);
+            pokedex.searchPokemonID(Integer.parseInt(search_term));
         }
-
     }
 }
