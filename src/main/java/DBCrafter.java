@@ -1,8 +1,10 @@
 import com.opencsv.CSVReader;
+import com.opencsv.exceptions.CsvException;
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.FileNotFoundException;
 import java.io.FileReader;
+import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.sql.*;
@@ -11,7 +13,8 @@ import java.util.List;
 public class DBCrafter {
     private final String pathname;
     private Connection connection = null;
-    private Statement updater;
+    private Statement maker;
+    private PreparedStatement insert_batch;
 
     private DBCrafter(Path filename){
         this.pathname = "jdbc:sqlite:"+filename;
@@ -28,14 +31,29 @@ public class DBCrafter {
     private Statement getConnection(){
         try {
             connection = DriverManager.getConnection(pathname);
-            updater = connection.createStatement();
-            updater.setQueryTimeout(30); //Sets timeout to 30 seconds
+            maker = connection.createStatement();
+            maker.setQueryTimeout(30); //Sets timeout to 30 seconds
         }
         catch(SQLException ex){
             System.err.println(ex.getMessage());
             System.exit(1);
         }
-        return updater;
+        return maker;
+    }
+
+    private PreparedStatement getBatchInsert(){
+        try{
+            connection = DriverManager.getConnection(pathname);
+            //11 fields
+            insert_batch = connection.prepareStatement("insert into pokemon values(? , ? , ? ,  ? , ? , ? , ? , ? , ? , ? , ? )");
+            insert_batch.setQueryTimeout(30);
+        }
+        catch(SQLException ex){
+            System.out.println("Catch in creating the batch insert.");
+            System.err.println(ex.getMessage());
+            System.exit(1);
+        }
+        return insert_batch;
     }
 
     public void readCSV(String filename){
@@ -48,56 +66,59 @@ public class DBCrafter {
         catch(FileNotFoundException ex){
             System.err.println("File does not exist, check your file path and try again.");
             System.exit(1);
+        } catch (IOException | CsvException e) {
+            e.printStackTrace();
         }
-        catch(Exception ex){
-            System.err.println("Error: " + ex.getMessage());
-            System.exit(1);
-        }
+//        catch(Exception ex){
+//            System.out.println("Catch in reading CSV.");
+//            System.out.println("Error: " + ex.getMessage());
+//            System.exit(1);
+//        }
     }
 
-    private Statement batchData(List<String[]> data){
-        Statement batch = getConnection();
-        //Use StringBuilder to conform data to table insertion
-        StringBuilder sb = new StringBuilder();
+    private PreparedStatement batchData(List<String[]> data){
+        PreparedStatement batch = getBatchInsert();
+
         //Iterate for each item in data, add to batch update
-        for (String[] x : data) {
-            //flush sb each pass
-            sb.delete(0, sb.length());
-            sb.append("values(");
-            for (String s : x) {
-                if (StringUtils.isNumeric(s)) {
-                    sb.append(s).append(", ");
-                } else {
-                    //Capitalization check
-                    if (s.length() > 0) {
-                        s = s.substring(0, 1).toUpperCase() + s.substring(1);
+        try {
+            for (String[] x : data) {
+                for (int i = 0, xLength = (x.length); i < xLength; i++) {
+                    String s = x[i];
+                    if (StringUtils.isNumeric(s)) {
+                        batch.setInt(i+1, Integer.parseInt(s));
+                    } else {
+                        //Capitalization check
+                        if (s.length() > 0) {
+                            s = s.substring(0, 1).toUpperCase() + s.substring(1);
+                        }
+                        batch.setString(i+1, s);
                     }
-                    sb.append("'").append(s).append("'").append(", ");
                 }
+                batch.addBatch();
+                batch.clearParameters();
             }
-            sb.replace((sb.length() - 2), sb.length(), ")");
-            try {
-                batch.addBatch("insert into pokemon " + sb);
-            } catch (SQLException ex) {
-                //System.err.println(ex.getMessage());
-                System.err.println("Bad syntax");
-            }
+        }
+        catch(SQLException ex){
+            System.out.println("Catch in batching data.");
+            System.err.println(ex.getMessage());
+            System.exit(1);
         }
         return batch;
     }
 
     private void makeFile(){
         //Flush and recreate the table in case of existing
-        updater = getConnection();
+        maker = getConnection();
         try{
-            updater.addBatch("drop table if exists pokemon");
-            updater.addBatch("create table pokemon (id int, name string, type1 string, type2 string, hp int, attack int, defense int, sp_attack int, sp_defense int, speed int, evolved int)");
+            maker.addBatch("drop table if exists pokemon");
+            maker.addBatch("create table pokemon (id int, name string, type1 string, type2 string, hp int, attack int, defense int, sp_attack int, sp_defense int, speed int, evolved int)");
             //Execute batch, empty after for safety
-            updater.executeBatch();
-            updater.clearBatch();
+            maker.executeBatch();
+            maker.clearBatch();
         }
         catch(SQLException ex)
         {
+            System.out.println("Catch in creating the file.");
             System.err.println(ex.getMessage());
         }
 
@@ -105,17 +126,20 @@ public class DBCrafter {
 
     private void saveDB(List<String[]> data){
         try{
-            System.out.println("Starting DB save, this may take a minute!");
-
+            System.out.println("Starting DB save...");
+            System.out.println("Creating DB file...");
             makeFile();
 
-            updater = batchData(data);
+            System.out.println("Preparing table data...");
+            insert_batch = batchData(data);
 
+            System.out.println("Inserting data, please wait...");
             //Execute batch, empty after for safety
-            updater.executeBatch();
-            updater.clearBatch();
+            insert_batch.executeBatch();
+            insert_batch.clearBatch();
         }
         catch(SQLException ex){
+            System.out.println("Catch in saving, bad statement?");
             System.err.println(ex.getMessage());
         }
         finally
