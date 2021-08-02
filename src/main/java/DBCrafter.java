@@ -75,18 +75,12 @@ public class DBCrafter {
 //            System.exit(1);
 //        }
     }
-    private PreparedStatement batchHundred(List<String[]> data, int batch_num){
+    private PreparedStatement batchThirty(List<String[]> data, int batch_num){
         PreparedStatement batch = getBatchInsert();
-        int limiter;
-        if((batch_num*100)+100 > data.size()){
-            limiter=data.size();
-        }
-        else{
-            limiter=(batch_num*100)+100;
-        }
+        int limiter = Math.min((batch_num * 30) + 30, data.size());
         //Iterate for each item in data, add to batch update
         try {
-            for (int j = (batch_num*100); j < limiter; j++) {
+            for (int j = (batch_num*30); j < limiter; j++) {
                 String[] x = data.get(j);
                 for (int i = 0, xLength = (x.length); i < xLength; i++) {
                     String s = x[i];
@@ -168,9 +162,9 @@ public class DBCrafter {
 
             System.out.println("Preparing table data...");
             long start = System.currentTimeMillis();
-            int batch_count = (data.size()/100)+1;
+            int batch_count = (data.size()/30)+1;
             for(int i=0; i<batch_count;i++){
-                insert_batch = batchHundred(data, i);
+                insert_batch = batchThirty(data, i);
                 System.out.println("Sending batch "+i+"...");
                 long startInternal = System.currentTimeMillis();
                 insert_batch.executeBatch();
