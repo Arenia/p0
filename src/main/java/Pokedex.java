@@ -1,4 +1,8 @@
+import java.io.BufferedWriter;
+import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.sql.*;
 import java.util.Scanner;
 
@@ -6,13 +10,18 @@ public class Pokedex {
     private final String pathname;
     private Connection connection = null;
     private Statement retriever;
+    private final String saveFile;
+    private final boolean saving;
+    private Pokemon results;
 
-    private Pokedex(Path filename){
+    private Pokedex(Path filename, boolean save, String saveFile){
         this.pathname = "jdbc:sqlite:"+filename;
+        this.saving = save;
+        this.saveFile = saveFile;
     }
 
-    public static Pokedex of(Path filename){
-        return new Pokedex(filename);
+    public static Pokedex of(Path filename, boolean save, String saveFile){
+        return new Pokedex(filename, save, saveFile);
     }
 
     private Statement getConnection(){
@@ -47,34 +56,12 @@ public class Pokedex {
         ResultSet mon;
         try {
             mon = retriever.executeQuery("select * from pokemon where id=" + search_term);
-            System.out.println("Name: "+mon.getString(2));
-            System.out.println("Pokedex number: "+mon.getInt(1));
-            System.out.println("Type 1: "+mon.getString(3));
-            System.out.println("Type 2: "+mon.getString(4));
-            System.out.println("Base HP: "+mon.getInt(5));
-            System.out.println("Base Attack: "+mon.getInt(6));
-            System.out.println("Base Defense: "+mon.getInt(7));
-            System.out.println("Base Special Attack: "+mon.getInt(8));
-            System.out.println("Base Special Defense: "+mon.getInt(9));
-            System.out.println("Base Speed: "+mon.getInt(10));
-            int sum = mon.getInt(10) + mon.getInt(9) + mon.getInt(8) + mon.getInt(7) + mon.getInt(6) + mon.getInt(5);
-            System.out.println("Base Total: "+sum);
-            int evolved = mon.getInt(11);
-            switch (evolved){
-                case 0:
-                    System.out.println("Evolution: Not yet evolved");
-                    break;
-                case 1:
-                    System.out.println("Evolution: Partially evolved, not final");
-                    break;
-                case 2:
-                    System.out.println("Evolution: Fully evolved");
-                    break;
-                case 3:
-                    System.out.println("Evolution: Doesn't evolve");
-                    break;
-                default:
-                    break;
+            results = Pokemon.resultMon(mon);
+            if(saving){
+                results.savePokemon(this.saveFile);
+            }
+            else{
+                results.printPokemon();
             }
         }
         catch(SQLException ex){
@@ -88,40 +75,52 @@ public class Pokedex {
         ResultSet mon;
         try {
             mon = retriever.executeQuery("select * from pokemon where name='" + search_term+"'");
-            System.out.println("Name: "+mon.getString(2));
-            System.out.println("Pokedex number: "+mon.getInt(1));
-            System.out.println("Type 1: "+mon.getString(3));
-            System.out.println("Type 2: "+mon.getString(4));
-            System.out.println("Base HP: "+mon.getInt(5));
-            System.out.println("Base Attack: "+mon.getInt(6));
-            System.out.println("Base Defense: "+mon.getInt(7));
-            System.out.println("Base Special Attack: "+mon.getInt(8));
-            System.out.println("Base Special Defense: "+mon.getInt(9));
-            System.out.println("Base Speed: "+mon.getInt(10));
-            int sum = mon.getInt(10) + mon.getInt(9) + mon.getInt(8) + mon.getInt(7) + mon.getInt(6) + mon.getInt(5);
-            System.out.println("Base Total: "+sum);
-            int evolved = mon.getInt(11);
-            switch (evolved){
-                case 0:
-                    System.out.println("Evolution: Not yet evolved");
-                    break;
-                case 1:
-                    System.out.println("Evolution: Partially evolved, not final");
-                    break;
-                case 2:
-                    System.out.println("Evolution: Fully evolved");
-                    break;
-                case 3:
-                    System.out.println("Evolution: Doesn't evolve");
-                    break;
-                default:
-                    break;
+            results = Pokemon.resultMon(mon);
+            if(saving){
+                results.savePokemon(this.saveFile);
+            }
+            else{
+                results.printPokemon();
             }
         }
         catch(SQLException ex){
             System.err.println(ex.getMessage());
         }
         closeConnection();
+    }
+
+    public void searchType(String search_term, int search_type) {
+        switch (search_type){
+            case 1:
+                searchAllType(search_term);
+                break;
+            case 2:
+                searchEvolvedType(search_term);
+                break;
+            case 3:
+                searchPlusType(search_term);
+                break;
+            case 4:
+                searchLittleType(search_term);
+                break;
+            case 5:
+                searchFlatType(search_term);
+                break;
+            case 6:
+                searchMonoType(search_term);
+                break;
+            case 7:
+                searchMonoEvolvedType(search_term);
+                break;
+            case 8:
+                searchMonoPlusType(search_term);
+                break;
+            case 9:
+                searchMonoLittleType(search_term);
+                break;
+            default:
+                break;
+        }
     }
 
     public void searchType(String search_term) {
@@ -205,15 +204,22 @@ public class Pokedex {
             float avg_spd = (float) spd / count;
             float avg_total = avg_hp + avg_attack + avg_defense + avg_sp_at + avg_sp_def + avg_spd;
 
-            System.out.println("--Final results--");
-            System.out.println(sb);
-            System.out.println("Average HP: "+avg_hp);
-            System.out.println("Average Attack: "+avg_attack);
-            System.out.println("Average Defense: "+avg_defense);
-            System.out.println("Average Special Attack: "+avg_sp_at);
-            System.out.println("Average Special Defense: "+avg_sp_def);
-            System.out.println("Average Speed: "+avg_spd);
-            System.out.println("Average Base Total: "+avg_total);
+            String[] search_results = new String[9];
+            search_results[0] = "--Final results--";
+            search_results[1] = sb.toString();
+            search_results[2] = "Average HP: "+avg_hp;
+            search_results[3] = "Average Attack: "+avg_attack;
+            search_results[4] = "Average Defense: "+avg_defense;
+            search_results[5] = "Average Special Attack: "+avg_sp_at;
+            search_results[6] = "Average Special Defense: "+avg_sp_def;
+            search_results[7] = "Average Speed: "+avg_spd;
+            search_results[8] = "Average Base Total: "+avg_total;
+            if(saving){
+                saveSearchResults(search_results);
+            }
+            else{
+                printSearchResults(search_results);
+            }
         }
         catch(SQLException ex){
             System.err.println(ex.getMessage());
@@ -254,15 +260,22 @@ public class Pokedex {
             float avg_spd = (float) spd / count;
             float avg_total = avg_hp + avg_attack + avg_defense + avg_sp_at + avg_sp_def + avg_spd;
 
-            System.out.println("--Final results--");
-            System.out.println(sb);
-            System.out.println("Average HP: "+avg_hp);
-            System.out.println("Average Attack: "+avg_attack);
-            System.out.println("Average Defense: "+avg_defense);
-            System.out.println("Average Special Attack: "+avg_sp_at);
-            System.out.println("Average Special Defense: "+avg_sp_def);
-            System.out.println("Average Speed: "+avg_spd);
-            System.out.println("Average Base Total: "+avg_total);
+            String[] search_results = new String[9];
+            search_results[0] = "--Final results--";
+            search_results[1] = sb.toString();
+            search_results[2] = "Average HP: "+avg_hp;
+            search_results[3] = "Average Attack: "+avg_attack;
+            search_results[4] = "Average Defense: "+avg_defense;
+            search_results[5] = "Average Special Attack: "+avg_sp_at;
+            search_results[6] = "Average Special Defense: "+avg_sp_def;
+            search_results[7] = "Average Speed: "+avg_spd;
+            search_results[8] = "Average Base Total: "+avg_total;
+            if(saving){
+                saveSearchResults(search_results);
+            }
+            else{
+                printSearchResults(search_results);
+            }
         }
         catch(SQLException ex){
             System.err.println(ex.getMessage());
@@ -303,15 +316,22 @@ public class Pokedex {
             float avg_spd = (float) spd / count;
             float avg_total = avg_hp + avg_attack + avg_defense + avg_sp_at + avg_sp_def + avg_spd;
 
-            System.out.println("--Final results--");
-            System.out.println(sb);
-            System.out.println("Average HP: "+avg_hp);
-            System.out.println("Average Attack: "+avg_attack);
-            System.out.println("Average Defense: "+avg_defense);
-            System.out.println("Average Special Attack: "+avg_sp_at);
-            System.out.println("Average Special Defense: "+avg_sp_def);
-            System.out.println("Average Speed: "+avg_spd);
-            System.out.println("Average Base Total: "+avg_total);
+            String[] search_results = new String[9];
+            search_results[0] = "--Final results--";
+            search_results[1] = sb.toString();
+            search_results[2] = "Average HP: "+avg_hp;
+            search_results[3] = "Average Attack: "+avg_attack;
+            search_results[4] = "Average Defense: "+avg_defense;
+            search_results[5] = "Average Special Attack: "+avg_sp_at;
+            search_results[6] = "Average Special Defense: "+avg_sp_def;
+            search_results[7] = "Average Speed: "+avg_spd;
+            search_results[8] = "Average Base Total: "+avg_total;
+            if(saving){
+                saveSearchResults(search_results);
+            }
+            else{
+                printSearchResults(search_results);
+            }
         }
         catch(SQLException ex){
             System.err.println(ex.getMessage());
@@ -352,15 +372,22 @@ public class Pokedex {
             float avg_spd = (float) spd / count;
             float avg_total = avg_hp + avg_attack + avg_defense + avg_sp_at + avg_sp_def + avg_spd;
 
-            System.out.println("--Final results--");
-            System.out.println(sb);
-            System.out.println("Average HP: "+avg_hp);
-            System.out.println("Average Attack: "+avg_attack);
-            System.out.println("Average Defense: "+avg_defense);
-            System.out.println("Average Special Attack: "+avg_sp_at);
-            System.out.println("Average Special Defense: "+avg_sp_def);
-            System.out.println("Average Speed: "+avg_spd);
-            System.out.println("Average Base Total: "+avg_total);
+            String[] search_results = new String[9];
+            search_results[0] = "--Final results--";
+            search_results[1] = sb.toString();
+            search_results[2] = "Average HP: "+avg_hp;
+            search_results[3] = "Average Attack: "+avg_attack;
+            search_results[4] = "Average Defense: "+avg_defense;
+            search_results[5] = "Average Special Attack: "+avg_sp_at;
+            search_results[6] = "Average Special Defense: "+avg_sp_def;
+            search_results[7] = "Average Speed: "+avg_spd;
+            search_results[8] = "Average Base Total: "+avg_total;
+            if(saving){
+                saveSearchResults(search_results);
+            }
+            else{
+                printSearchResults(search_results);
+            }
         }
         catch(SQLException ex){
             System.err.println(ex.getMessage());
@@ -401,15 +428,22 @@ public class Pokedex {
             float avg_spd = (float) spd / count;
             float avg_total = avg_hp + avg_attack + avg_defense + avg_sp_at + avg_sp_def + avg_spd;
 
-            System.out.println("--Final results--");
-            System.out.println(sb);
-            System.out.println("Average HP: "+avg_hp);
-            System.out.println("Average Attack: "+avg_attack);
-            System.out.println("Average Defense: "+avg_defense);
-            System.out.println("Average Special Attack: "+avg_sp_at);
-            System.out.println("Average Special Defense: "+avg_sp_def);
-            System.out.println("Average Speed: "+avg_spd);
-            System.out.println("Average Base Total: "+avg_total);
+            String[] search_results = new String[9];
+            search_results[0] = "--Final results--";
+            search_results[1] = sb.toString();
+            search_results[2] = "Average HP: "+avg_hp;
+            search_results[3] = "Average Attack: "+avg_attack;
+            search_results[4] = "Average Defense: "+avg_defense;
+            search_results[5] = "Average Special Attack: "+avg_sp_at;
+            search_results[6] = "Average Special Defense: "+avg_sp_def;
+            search_results[7] = "Average Speed: "+avg_spd;
+            search_results[8] = "Average Base Total: "+avg_total;
+            if(saving){
+                saveSearchResults(search_results);
+            }
+            else{
+                printSearchResults(search_results);
+            }
         }
         catch(SQLException ex){
             System.err.println(ex.getMessage());
@@ -450,15 +484,22 @@ public class Pokedex {
             float avg_spd = (float) spd / count;
             float avg_total = avg_hp + avg_attack + avg_defense + avg_sp_at + avg_sp_def + avg_spd;
 
-            System.out.println("--Final results--");
-            System.out.println(sb);
-            System.out.println("Average HP: "+avg_hp);
-            System.out.println("Average Attack: "+avg_attack);
-            System.out.println("Average Defense: "+avg_defense);
-            System.out.println("Average Special Attack: "+avg_sp_at);
-            System.out.println("Average Special Defense: "+avg_sp_def);
-            System.out.println("Average Speed: "+avg_spd);
-            System.out.println("Average Base Total: "+avg_total);
+            String[] search_results = new String[9];
+            search_results[0] = "--Final results--";
+            search_results[1] = sb.toString();
+            search_results[2] = "Average HP: "+avg_hp;
+            search_results[3] = "Average Attack: "+avg_attack;
+            search_results[4] = "Average Defense: "+avg_defense;
+            search_results[5] = "Average Special Attack: "+avg_sp_at;
+            search_results[6] = "Average Special Defense: "+avg_sp_def;
+            search_results[7] = "Average Speed: "+avg_spd;
+            search_results[8] = "Average Base Total: "+avg_total;
+            if(saving){
+                saveSearchResults(search_results);
+            }
+            else{
+                printSearchResults(search_results);
+            }
         }
         catch(SQLException ex){
             System.err.println(ex.getMessage());
@@ -499,15 +540,22 @@ public class Pokedex {
             float avg_spd = (float) spd / count;
             float avg_total = avg_hp + avg_attack + avg_defense + avg_sp_at + avg_sp_def + avg_spd;
 
-            System.out.println("--Final results--");
-            System.out.println(sb);
-            System.out.println("Average HP: "+avg_hp);
-            System.out.println("Average Attack: "+avg_attack);
-            System.out.println("Average Defense: "+avg_defense);
-            System.out.println("Average Special Attack: "+avg_sp_at);
-            System.out.println("Average Special Defense: "+avg_sp_def);
-            System.out.println("Average Speed: "+avg_spd);
-            System.out.println("Average Base Total: "+avg_total);
+            String[] search_results = new String[9];
+            search_results[0] = "--Final results--";
+            search_results[1] = sb.toString();
+            search_results[2] = "Average HP: "+avg_hp;
+            search_results[3] = "Average Attack: "+avg_attack;
+            search_results[4] = "Average Defense: "+avg_defense;
+            search_results[5] = "Average Special Attack: "+avg_sp_at;
+            search_results[6] = "Average Special Defense: "+avg_sp_def;
+            search_results[7] = "Average Speed: "+avg_spd;
+            search_results[8] = "Average Base Total: "+avg_total;
+            if(saving){
+                saveSearchResults(search_results);
+            }
+            else{
+                printSearchResults(search_results);
+            }
         }
         catch(SQLException ex){
             System.err.println(ex.getMessage());
@@ -549,15 +597,22 @@ public class Pokedex {
             float avg_spd = (float) spd / count;
             float avg_total = avg_hp + avg_attack + avg_defense + avg_sp_at + avg_sp_def + avg_spd;
 
-            System.out.println("--Final results--");
-            System.out.println(sb);
-            System.out.println("Average HP: "+avg_hp);
-            System.out.println("Average Attack: "+avg_attack);
-            System.out.println("Average Defense: "+avg_defense);
-            System.out.println("Average Special Attack: "+avg_sp_at);
-            System.out.println("Average Special Defense: "+avg_sp_def);
-            System.out.println("Average Speed: "+avg_spd);
-            System.out.println("Average Base Total: "+avg_total);
+            String[] search_results = new String[9];
+            search_results[0] = "--Final results--";
+            search_results[1] = sb.toString();
+            search_results[2] = "Average HP: "+avg_hp;
+            search_results[3] = "Average Attack: "+avg_attack;
+            search_results[4] = "Average Defense: "+avg_defense;
+            search_results[5] = "Average Special Attack: "+avg_sp_at;
+            search_results[6] = "Average Special Defense: "+avg_sp_def;
+            search_results[7] = "Average Speed: "+avg_spd;
+            search_results[8] = "Average Base Total: "+avg_total;
+            if(saving){
+                saveSearchResults(search_results);
+            }
+            else{
+                printSearchResults(search_results);
+            }
         }
         catch(SQLException ex){
             System.err.println(ex.getMessage());
@@ -598,19 +653,44 @@ public class Pokedex {
             float avg_spd = (float) spd / count;
             float avg_total = avg_hp + avg_attack + avg_defense + avg_sp_at + avg_sp_def + avg_spd;
 
-            System.out.println("--Final results--");
-            System.out.println(sb);
-            System.out.println("Average HP: "+avg_hp);
-            System.out.println("Average Attack: "+avg_attack);
-            System.out.println("Average Defense: "+avg_defense);
-            System.out.println("Average Special Attack: "+avg_sp_at);
-            System.out.println("Average Special Defense: "+avg_sp_def);
-            System.out.println("Average Speed: "+avg_spd);
-            System.out.println("Average Base Total: "+avg_total);
+            String[] search_results = new String[9];
+            search_results[0] = "--Final results--";
+            search_results[1] = sb.toString();
+            search_results[2] = "Average HP: "+avg_hp;
+            search_results[3] = "Average Attack: "+avg_attack;
+            search_results[4] = "Average Defense: "+avg_defense;
+            search_results[5] = "Average Special Attack: "+avg_sp_at;
+            search_results[6] = "Average Special Defense: "+avg_sp_def;
+            search_results[7] = "Average Speed: "+avg_spd;
+            search_results[8] = "Average Base Total: "+avg_total;
+            if(saving){
+                saveSearchResults(search_results);
+            }
+            else{
+                printSearchResults(search_results);
+            }
         }
         catch(SQLException ex){
             System.err.println(ex.getMessage());
         }
         closeConnection();
+    }
+
+    private void printSearchResults(String[] search_results){
+        for (String line : search_results) {
+            System.out.println(line);
+        }
+    }
+
+    private void saveSearchResults(String[] search_results){
+        Path save_path = Paths.get(this.saveFile);
+        try (BufferedWriter writer = Files.newBufferedWriter(save_path)){
+            for (String line : search_results) {
+                writer.write(line+"\n");
+            }
+            writer.flush();
+        } catch (IOException ex) {
+            ex.printStackTrace();
+        }
     }
 }

@@ -160,8 +160,8 @@ public class DBCrafter {
             System.out.println("Creating DB file...");
             makeFile();
 
-            System.out.println("Preparing table data...");
-            long start = System.currentTimeMillis();
+            System.out.println("Preparing batches...");
+            //long start = System.currentTimeMillis();
             int batch_count = (data.size()/30)+1;
             for(int i=0; i<batch_count;i++){
                 insert_batch = batchThirty(data, i);
@@ -169,14 +169,14 @@ public class DBCrafter {
                 long startInternal = System.currentTimeMillis();
                 insert_batch.executeBatch();
                 insert_batch.clearBatch();
-                System.out.println("batch time taken = " + (System.currentTimeMillis() - startInternal) + " ms");
+                //System.out.println("batch time taken = " + (System.currentTimeMillis() - startInternal) + " ms");
             }
-            long end = System.currentTimeMillis();
-            System.out.println("total time taken = " + (end - start) + " ms");
-            System.out.println("avg total time taken = " + (end - start)/ data.size() + " ms");
+            //long end = System.currentTimeMillis();
+            //System.out.println("total time taken = " + (end - start) + " ms");
+            //System.out.println("avg total time taken = " + (end - start)/ data.size() + " ms");
             //insert_batch = batchData(data);
 
-            System.out.println("Inserting data, please wait...");
+            //System.out.println("Inserting data, please wait...");
             //Execute batch, empty after for safety
             //insert_batch.executeBatch();
             //insert_batch.clearBatch();
@@ -189,7 +189,7 @@ public class DBCrafter {
         {
             closeConnection();
         }
-        System.out.println("Database save complete");
+        System.out.println("Database save complete!");
     }
 
     private void closeConnection() {
