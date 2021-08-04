@@ -69,13 +69,8 @@ public class DBCrafter {
         } catch (IOException | CsvException e) {
             e.printStackTrace();
         }
-//        catch(Exception ex){
-//            System.out.println("Catch in reading CSV.");
-//            System.out.println("Error: " + ex.getMessage());
-//            System.exit(1);
-//        }
     }
-    private PreparedStatement batchThirty(List<String[]> data, int batch_num){
+    private PreparedStatement batchData(List<String[]> data, int batch_num){
         PreparedStatement batch = getBatchInsert();
         int limiter = Math.min((batch_num * 30) + 30, data.size());
         //Iterate for each item in data, add to batch update
@@ -92,36 +87,6 @@ public class DBCrafter {
                             s = s.substring(0, 1).toUpperCase() + s.substring(1);
                         }
                         batch.setString(i + 1, s);
-                    }
-                }
-                batch.addBatch();
-                batch.clearParameters();
-            }
-        }
-        catch(SQLException ex){
-            System.out.println("Catch in batching data.");
-            System.err.println(ex.getMessage());
-            System.exit(1);
-        }
-        return batch;
-    }
-
-    private PreparedStatement batchData(List<String[]> data){
-        PreparedStatement batch = getBatchInsert();
-
-        //Iterate for each item in data, add to batch update
-        try {
-            for (String[] x : data) {
-                for (int i = 0, xLength = (x.length); i < xLength; i++) {
-                    String s = x[i];
-                    if (StringUtils.isNumeric(s)) {
-                        batch.setInt(i+1, Integer.parseInt(s));
-                    } else {
-                        //Capitalization check
-                        if (s.length() > 0) {
-                            s = s.substring(0, 1).toUpperCase() + s.substring(1);
-                        }
-                        batch.setString(i+1, s);
                     }
                 }
                 batch.addBatch();
@@ -161,25 +126,13 @@ public class DBCrafter {
             makeFile();
 
             System.out.println("Preparing batches...");
-            //long start = System.currentTimeMillis();
             int batch_count = (data.size()/30)+1;
             for(int i=0; i<batch_count;i++){
-                insert_batch = batchThirty(data, i);
+                insert_batch = batchData(data, i);
                 System.out.println("Sending batch "+i+"...");
-                long startInternal = System.currentTimeMillis();
                 insert_batch.executeBatch();
                 insert_batch.clearBatch();
-                //System.out.println("batch time taken = " + (System.currentTimeMillis() - startInternal) + " ms");
             }
-            //long end = System.currentTimeMillis();
-            //System.out.println("total time taken = " + (end - start) + " ms");
-            //System.out.println("avg total time taken = " + (end - start)/ data.size() + " ms");
-            //insert_batch = batchData(data);
-
-            //System.out.println("Inserting data, please wait...");
-            //Execute batch, empty after for safety
-            //insert_batch.executeBatch();
-            //insert_batch.clearBatch();
         }
         catch(SQLException ex){
             System.out.println("Catch in saving, bad statement?");

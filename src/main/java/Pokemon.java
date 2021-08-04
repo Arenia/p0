@@ -9,6 +9,11 @@ import java.sql.SQLException;
 public class Pokemon {
     private final int id;
     private final String name;
+
+    public String getName() {
+        return name;
+    }
+
     private final String type1;
     private final String type2;
     private final int hp;
@@ -115,8 +120,5 @@ public class Pokemon {
         } catch (IOException ex) {
             ex.printStackTrace();
         }
-
     }
-
-
 }

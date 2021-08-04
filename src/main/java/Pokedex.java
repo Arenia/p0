@@ -1,3 +1,5 @@
+import org.apache.commons.lang3.ArrayUtils;
+
 import java.io.BufferedWriter;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -51,7 +53,7 @@ public class Pokedex {
         }
     }
 
-    public void searchPokemonID(int search_term) {
+    public Pokemon searchPokemonID(int search_term) {
         retriever = getConnection();
         ResultSet mon;
         try {
@@ -68,9 +70,10 @@ public class Pokedex {
             System.err.println(ex.getMessage());
         }
         closeConnection();
+        return results;
     }
 
-    public void searchPokemonName(String search_term) {
+    public Pokemon searchPokemonName(String search_term) {
         retriever = getConnection();
         ResultSet mon;
         try {
@@ -87,43 +90,47 @@ public class Pokedex {
             System.err.println(ex.getMessage());
         }
         closeConnection();
+        return results;
     }
 
-    public void searchType(String search_term, int search_type) {
+    public String[] searchType(String search_term, int search_type) {
+        String[] search_results;
         switch (search_type){
             case 1:
-                searchAllType(search_term);
+                search_results = searchAllType(search_term);
                 break;
             case 2:
-                searchEvolvedType(search_term);
+                search_results = searchEvolvedType(search_term);
                 break;
             case 3:
-                searchPlusType(search_term);
+                search_results = searchPlusType(search_term);
                 break;
             case 4:
-                searchLittleType(search_term);
+                search_results = searchLittleType(search_term);
                 break;
             case 5:
-                searchFlatType(search_term);
+                search_results = searchFlatType(search_term);
                 break;
             case 6:
-                searchMonoType(search_term);
+                search_results = searchMonoType(search_term);
                 break;
             case 7:
-                searchMonoEvolvedType(search_term);
+                search_results = searchMonoEvolvedType(search_term);
                 break;
             case 8:
-                searchMonoPlusType(search_term);
+                search_results = searchMonoPlusType(search_term);
                 break;
             case 9:
-                searchMonoLittleType(search_term);
+                search_results = searchMonoLittleType(search_term);
                 break;
             default:
-                break;
+                return null;
         }
+        return search_results;
     }
 
-    public void searchType(String search_term) {
+    public String[] searchType(String search_term) {
+        String[] search_results;
         Scanner read_in = new Scanner(System.in);
         System.out.println("Select a mode to work in:");
         System.out.println("1. All Pokemon");
@@ -140,41 +147,43 @@ public class Pokedex {
         String input = read_in.nextLine();
         switch (input){
             case "1":
-                searchAllType(search_term);
+                search_results = searchAllType(search_term);
                 break;
             case "2":
-                searchEvolvedType(search_term);
+                search_results = searchEvolvedType(search_term);
                 break;
             case "3":
-                searchPlusType(search_term);
+                search_results = searchPlusType(search_term);
                 break;
             case "4":
-                searchLittleType(search_term);
+                search_results = searchLittleType(search_term);
                 break;
             case "5":
-                searchFlatType(search_term);
+                search_results = searchFlatType(search_term);
                 break;
             case "6":
-                searchMonoType(search_term);
+                search_results = searchMonoType(search_term);
                 break;
             case "7":
-                searchMonoEvolvedType(search_term);
+                search_results = searchMonoEvolvedType(search_term);
                 break;
             case "8":
-                searchMonoPlusType(search_term);
+                search_results = searchMonoPlusType(search_term);
                 break;
             case "9":
-                searchMonoLittleType(search_term);
+                search_results = searchMonoLittleType(search_term);
                 break;
             default:
-                break;
+                return null;
         }
+        return search_results;
     }
 
-    private void searchMonoLittleType(String search_term) {
+    private String[] searchMonoLittleType(String search_term) {
         retriever = getConnection();
         ResultSet mons;
         StringBuilder sb = new StringBuilder();
+        String[] search_results = new String[9];
         sb.append("Total pokemon found: ");
         try{
             mons = retriever.executeQuery("select * from pokemon where (evolved<2) AND (type1='"+search_term+"' AND type2='-')");
@@ -204,7 +213,6 @@ public class Pokedex {
             float avg_spd = (float) spd / count;
             float avg_total = avg_hp + avg_attack + avg_defense + avg_sp_at + avg_sp_def + avg_spd;
 
-            String[] search_results = new String[9];
             search_results[0] = "--Final results--";
             search_results[1] = sb.toString();
             search_results[2] = "Average HP: "+avg_hp;
@@ -225,12 +233,19 @@ public class Pokedex {
             System.err.println(ex.getMessage());
         }
         closeConnection();
+        if(ArrayUtils.isEmpty(search_results)){
+            return null;
+        }
+        else{
+            return search_results;
+        }
     }
 
-    private void searchMonoPlusType(String search_term) {
+    private String[] searchMonoPlusType(String search_term) {
         retriever = getConnection();
         ResultSet mons;
         StringBuilder sb = new StringBuilder();
+        String[] search_results = new String[9];
         sb.append("Total pokemon found: ");
         try{
             int hp=0;
@@ -260,7 +275,6 @@ public class Pokedex {
             float avg_spd = (float) spd / count;
             float avg_total = avg_hp + avg_attack + avg_defense + avg_sp_at + avg_sp_def + avg_spd;
 
-            String[] search_results = new String[9];
             search_results[0] = "--Final results--";
             search_results[1] = sb.toString();
             search_results[2] = "Average HP: "+avg_hp;
@@ -281,12 +295,19 @@ public class Pokedex {
             System.err.println(ex.getMessage());
         }
         closeConnection();
+        if(ArrayUtils.isEmpty(search_results)){
+            return null;
+        }
+        else{
+            return search_results;
+        }
     }
 
-    private void searchMonoEvolvedType(String search_term) {
+    private String[] searchMonoEvolvedType(String search_term) {
         retriever = getConnection();
         ResultSet mons;
         StringBuilder sb = new StringBuilder();
+        String[] search_results = new String[9];
         sb.append("Total pokemon found: ");
         try{
             int hp=0;
@@ -316,7 +337,6 @@ public class Pokedex {
             float avg_spd = (float) spd / count;
             float avg_total = avg_hp + avg_attack + avg_defense + avg_sp_at + avg_sp_def + avg_spd;
 
-            String[] search_results = new String[9];
             search_results[0] = "--Final results--";
             search_results[1] = sb.toString();
             search_results[2] = "Average HP: "+avg_hp;
@@ -337,12 +357,19 @@ public class Pokedex {
             System.err.println(ex.getMessage());
         }
         closeConnection();
+        if(ArrayUtils.isEmpty(search_results)){
+            return null;
+        }
+        else{
+            return search_results;
+        }
     }
 
-    private void searchMonoType(String search_term) {
+    private String[] searchMonoType(String search_term) {
         retriever = getConnection();
         ResultSet mons;
         StringBuilder sb = new StringBuilder();
+        String[] search_results = new String[9];
         sb.append("Total pokemon found: ");
         try{
             int hp=0;
@@ -372,7 +399,6 @@ public class Pokedex {
             float avg_spd = (float) spd / count;
             float avg_total = avg_hp + avg_attack + avg_defense + avg_sp_at + avg_sp_def + avg_spd;
 
-            String[] search_results = new String[9];
             search_results[0] = "--Final results--";
             search_results[1] = sb.toString();
             search_results[2] = "Average HP: "+avg_hp;
@@ -393,12 +419,19 @@ public class Pokedex {
             System.err.println(ex.getMessage());
         }
         closeConnection();
+        if(ArrayUtils.isEmpty(search_results)){
+            return null;
+        }
+        else{
+            return search_results;
+        }
     }
 
-    private void searchFlatType(String search_term) {
+    private String[] searchFlatType(String search_term) {
         retriever = getConnection();
         ResultSet mons;
         StringBuilder sb = new StringBuilder();
+        String[] search_results = new String[9];
         sb.append("Total pokemon found: ");
         try{
             int hp=0;
@@ -428,7 +461,7 @@ public class Pokedex {
             float avg_spd = (float) spd / count;
             float avg_total = avg_hp + avg_attack + avg_defense + avg_sp_at + avg_sp_def + avg_spd;
 
-            String[] search_results = new String[9];
+
             search_results[0] = "--Final results--";
             search_results[1] = sb.toString();
             search_results[2] = "Average HP: "+avg_hp;
@@ -449,12 +482,19 @@ public class Pokedex {
             System.err.println(ex.getMessage());
         }
         closeConnection();
+        if(ArrayUtils.isEmpty(search_results)){
+            return null;
+        }
+        else{
+            return search_results;
+        }
     }
 
-    private void searchLittleType(String search_term) {
+    private String[] searchLittleType(String search_term) {
         retriever = getConnection();
         ResultSet mons;
         StringBuilder sb = new StringBuilder();
+        String[] search_results = new String[9];
         sb.append("Total pokemon found: ");
         try{
             int hp=0;
@@ -484,7 +524,7 @@ public class Pokedex {
             float avg_spd = (float) spd / count;
             float avg_total = avg_hp + avg_attack + avg_defense + avg_sp_at + avg_sp_def + avg_spd;
 
-            String[] search_results = new String[9];
+
             search_results[0] = "--Final results--";
             search_results[1] = sb.toString();
             search_results[2] = "Average HP: "+avg_hp;
@@ -505,12 +545,19 @@ public class Pokedex {
             System.err.println(ex.getMessage());
         }
         closeConnection();
+        if(ArrayUtils.isEmpty(search_results)){
+            return null;
+        }
+        else{
+            return search_results;
+        }
     }
 
-    private void searchPlusType(String search_term) {
+    private String[] searchPlusType(String search_term) {
         retriever = getConnection();
         ResultSet mons;
         StringBuilder sb = new StringBuilder();
+        String[] search_results = new String[9];
         sb.append("Total pokemon found: ");
         try{
             int hp=0;
@@ -540,7 +587,6 @@ public class Pokedex {
             float avg_spd = (float) spd / count;
             float avg_total = avg_hp + avg_attack + avg_defense + avg_sp_at + avg_sp_def + avg_spd;
 
-            String[] search_results = new String[9];
             search_results[0] = "--Final results--";
             search_results[1] = sb.toString();
             search_results[2] = "Average HP: "+avg_hp;
@@ -561,13 +607,20 @@ public class Pokedex {
             System.err.println(ex.getMessage());
         }
         closeConnection();
+        if(ArrayUtils.isEmpty(search_results)){
+            return null;
+        }
+        else{
+            return search_results;
+        }
     }
 
 
-    private void searchEvolvedType(String search_term) {
+    private String[] searchEvolvedType(String search_term) {
         retriever = getConnection();
         ResultSet mons;
         StringBuilder sb = new StringBuilder();
+        String[] search_results = new String[9];
         sb.append("Total pokemon found: ");
         try{
             int hp=0;
@@ -597,7 +650,6 @@ public class Pokedex {
             float avg_spd = (float) spd / count;
             float avg_total = avg_hp + avg_attack + avg_defense + avg_sp_at + avg_sp_def + avg_spd;
 
-            String[] search_results = new String[9];
             search_results[0] = "--Final results--";
             search_results[1] = sb.toString();
             search_results[2] = "Average HP: "+avg_hp;
@@ -618,12 +670,19 @@ public class Pokedex {
             System.err.println(ex.getMessage());
         }
         closeConnection();
+        if(ArrayUtils.isEmpty(search_results)){
+            return null;
+        }
+        else{
+            return search_results;
+        }
     }
 
-    private void searchAllType(String search_term) {
+    private String[] searchAllType(String search_term) {
         retriever = getConnection();
         ResultSet mons;
         StringBuilder sb = new StringBuilder();
+        String[] search_results = new String[9];
         sb.append("Total pokemon found: ");
         try{
             int hp=0;
@@ -653,7 +712,6 @@ public class Pokedex {
             float avg_spd = (float) spd / count;
             float avg_total = avg_hp + avg_attack + avg_defense + avg_sp_at + avg_sp_def + avg_spd;
 
-            String[] search_results = new String[9];
             search_results[0] = "--Final results--";
             search_results[1] = sb.toString();
             search_results[2] = "Average HP: "+avg_hp;
@@ -674,6 +732,12 @@ public class Pokedex {
             System.err.println(ex.getMessage());
         }
         closeConnection();
+        if(ArrayUtils.isEmpty(search_results)){
+            return null;
+        }
+        else{
+            return search_results;
+        }
     }
 
     private void printSearchResults(String[] search_results){
