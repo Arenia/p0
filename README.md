@@ -15,7 +15,7 @@ A CLI Application to retrieve and analyze data from Pokemon. This grants insight
 ## Usage
 >mvn exec:java
 
-Additionally, there are some flags that can be set on the command line:
+- Additionally, there are some flags that can be set on the command line:
 	- "--csv" or "-c": Specify your csv file to load. Default is pokemon.csv.
 	- "--database" or "-d": Specify your db file to save/load from. Default is pokemon.db.
 	- "--search" or "-s" Specify your search query. No default, but will go into GUI mode without one.
