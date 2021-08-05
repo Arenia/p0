@@ -14,6 +14,10 @@ public class Pokemon {
         return name;
     }
 
+    public int getID() {
+        return id;
+    }
+
     private final String type1;
     private final String type2;
     private final int hp;
